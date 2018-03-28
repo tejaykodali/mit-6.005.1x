@@ -1,6 +1,8 @@
 package twitter;
 
 import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,7 +40,19 @@ public class SocialNetwork {
      *         either authors or @-mentions in the list of tweets.
      */
     public static Map<String, Set<String>> guessFollowsGraph(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
+//        throw new RuntimeException("not implemented");
+        Map<String, Set<String>> followsGraph = new HashMap<String, Set<String>>();
+        
+        for (Tweet t : tweets) {
+            String author = t.getAuthor();
+            Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(t));
+            if (!mentionedUsers.isEmpty()) {
+                for (String user : mentionedUsers) {
+                    followsGraph.get(user).add(author);
+                }
+            }
+        }
+        return followsGraph;
     }
 
     /**
