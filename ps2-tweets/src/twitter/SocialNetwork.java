@@ -44,13 +44,15 @@ public class SocialNetwork {
         Map<String, Set<String>> followsGraph = new HashMap<String, Set<String>>();
         
         for (Tweet t : tweets) {
-            String author = t.getAuthor();
+            String author = t.getAuthor().toLowerCase();
             Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(t));
-            if (!mentionedUsers.isEmpty()) {
-                for (String user : mentionedUsers) {
-                    followsGraph.get(user).add(author);
+            if (followsGraph.containsKey(author)) {
+                Set<String> follows = followsGraph.get(author);
+                for (String user : follows) {
+                    mentionedUsers.add(user);
                 }
             }
+            followsGraph.put(author, mentionedUsers);
         }
         return followsGraph;
     }
@@ -65,7 +67,8 @@ public class SocialNetwork {
      *         descending order of follower count.
      */
     public static List<String> influencers(Map<String, Set<String>> followsGraph) {
-        throw new RuntimeException("not implemented");
+//        throw new RuntimeException("not implemented");
+        
     }
 
     /* Copyright (c) 2007-2016 MIT 6.005 course staff, all rights reserved.
