@@ -30,7 +30,7 @@ public class SocialNetworkTest {
     private static final Tweet tweet4 = new Tweet(4, "random345", "nothing much hbu @random123", d1);
     private static final Tweet tweet5 = new Tweet(5, "edx_org", "thanks @random123 @Random345", d2);
     private static final Tweet tweet6 = new Tweet(6, "mit_org", "@random345 @RANDOM123 please contact us at mit@mit.edu", d3);
-    private static final Tweet tweet7 = new Tweet(7, "user123", "hi @user123", d3);
+    private static final Tweet tweet7 = new Tweet(7, "user123", "hi @user123 @bbitdiddle @alyssa", d3);
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
@@ -48,9 +48,7 @@ public class SocialNetworkTest {
     public void testGuessFollowsNoMentions() {
         Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(Arrays.asList(tweet1, tweet2, tweet3));
         
-        assertEquals("expected empty result map value", new HashSet<String>(), followsGraph.get("random123"));
-        assertEquals("expected empty result map value", new HashSet<String>(), followsGraph.get("alysSa"));
-        assertEquals("expected empty result map value", new HashSet<String>(), followsGraph.get("bbitdiddle"));
+        assertEquals("expected empty result map value", new HashSet<>(), followsGraph.get("random123"));
     }
     
     @Test
@@ -65,10 +63,10 @@ public class SocialNetworkTest {
     }
     
     @Test
-    public void testGuesFollowsUsersCantFollowThemselves() {
+    public void testGuessFollowsUsersCantFollowThemselves() {
         Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(Arrays.asList(tweet7));
         
-        assertEquals("expect empty result map value", new HashSet<String>(), followsGraph.get("user123"));
+        assertEquals("expect empty result map value", makeSet("alyssa", "bbitdiddle"), followsGraph.get("user123"));
     }
     
     @Test
@@ -84,7 +82,7 @@ public class SocialNetworkTest {
         Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(Arrays.asList(tweet1, tweet2, tweet3, tweet4, tweet5, tweet6, tweet7));
         List<String> influencers = SocialNetwork.influencers(followsGraph);
         
-        assertEquals("expected result list", Arrays.asList("random123", "random345", "alyssa", "bbitdiddle", "edx_org", "mit_org", "user123"), influencers);
+        assertEquals("expected result list", Arrays.asList("random123", "random345", "bbitdiddle", "alyssa"), influencers);
     }
     
     

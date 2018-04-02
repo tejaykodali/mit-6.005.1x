@@ -1,10 +1,15 @@
 package twitter;
 
 import java.util.List;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * SocialNetwork provides methods that operate on a social network.
@@ -49,10 +54,21 @@ public class SocialNetwork {
             if (followsGraph.containsKey(author)) {
                 Set<String> follows = followsGraph.get(author);
                 for (String user : follows) {
-                    mentionedUsers.add(user);
+                    if (!user.equals(author)) {
+                        // user can't follow himself
+                        mentionedUsers.add(user);
+                    }
                 }
+                followsGraph.put(author, mentionedUsers);
+            } else {
+                Set<String> mentionedUsersExcludingAuthor = new HashSet<>();
+                for (String user : mentionedUsers) {
+                    if (!user.equals(author)) {
+                        mentionedUsersExcludingAuthor.add(user);
+                    }
+                }
+                followsGraph.put(author, mentionedUsersExcludingAuthor);
             }
-            followsGraph.put(author, mentionedUsers);
         }
         return followsGraph;
     }
@@ -68,11 +84,77 @@ public class SocialNetwork {
      */
     public static List<String> influencers(Map<String, Set<String>> followsGraph) {
 //        throw new RuntimeException("not implemented");
+        Map<String, Integer> userFollowers = new HashMap<>();
         
+        for (String key : followsGraph.keySet()) {
+            for (String value : followsGraph.get(key)) {
+                int followersCount = userFollowers.getOrDefault(value, 0);
+                userFollowers.put(value, followersCount + 1);
+            }
+        }
+        
+        TreeMap<String, Integer> usersSortedByFollowers = sortMap(userFollowers);
+        List<String> influencers = new ArrayList<String>();
+        influencers.addAll(usersSortedByFollowers.keySet());
+        return influencers;
+    }
+    
+    //https://www.programcreek.com/2013/03/java-sort-map-by-value/
+    private static TreeMap<String, Integer> sortMap(Map<String, Integer> map) {
+        Comparator<String> comparator = new ValueComparator(map);
+        TreeMap<String, Integer> result = new TreeMap<String, Integer>(comparator);
+        result.putAll(map);
+        return result;
+    }
+    
+    private static class ValueComparator implements Comparator<String> {
+        HashMap<String, Integer> map = new HashMap<>();
+        
+        public ValueComparator(Map<String, Integer> map) {
+            this.map.putAll(map);
+        }
+        
+        @Override
+        public int compare(String s1, String s2) {
+            if (map.get(s1) > map.get(s2)) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
     }
 
     /* Copyright (c) 2007-2016 MIT 6.005 course staff, all rights reserved.
      * Redistribution of original or derived work requires explicit permission.
      * Don't post any of this code on the web or to a public Github repository.
      */
+    
+    private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
+    private static final Instant d2 = Instant.parse("2016-02-17T11:00:00Z");
+    private static final Instant d3 = Instant.parse("2016-02-17T10:30:00Z");
+    
+    private static final Tweet tweet1 = new Tweet(1, "alyssa", "is it reasonable to talk about rivest so much?", d1);
+    private static final Tweet tweet2 = new Tweet(2, "bbitdiddle", "rivest talk in 30 minutes #hype", d2);
+    private static final Tweet tweet3 = new Tweet(3, "random123", "waddup fellow twitterati", d3);
+    private static final Tweet tweet4 = new Tweet(4, "random345", "nothing much hbu @random123", d1);
+    private static final Tweet tweet5 = new Tweet(5, "edx_org", "thanks @random123 @Random345", d2);
+    private static final Tweet tweet6 = new Tweet(6, "mit_org", "@random345 @RANDOM123 please contact us at mit@mit.edu", d3);
+    private static final Tweet tweet7 = new Tweet(7, "user123", "hi @user123 @alyssa @bbitdiddle", d3);
+    
+    public static void main(String[] args) {
+        Map<String, Set<String>> followsGraph = SocialNetwork.guessFollowsGraph(Arrays.asList(tweet1, tweet2, tweet3, tweet4, tweet5, tweet6, tweet7));
+        
+        System.out.println(followsGraph);
+        
+        Tweet t = tweet7;
+        
+        String author = t.getAuthor().toLowerCase();
+        Set<String> mentionedUsers = Extract.getMentionedUsers(Arrays.asList(t));
+        
+        for (String user : mentionedUsers) {
+            System.out.println("'" + user + "'");
+            System.out.println("'" + author + "'");
+            System.out.println(user.equals(author));
+        }
+    }
 }
